@@ -25,7 +25,7 @@ public class Player extends Actor {
 
     private float stateTime = 0;
     private int state = 2;
-    private boolean moving = false;
+    private boolean moving = false, onCrate = false;
 
     public int getState() {
         return state;
@@ -65,7 +65,7 @@ public class Player extends Actor {
             Tile t = (Tile) actor;
             return true;
         } else if (actor instanceof Crate) {
-            actor.remove();
+//            actor.remove();
         }
         return false;
     }

@@ -16,8 +16,8 @@ public class Crate extends Actor {
     public Crate(Texture crate, int x, int y) {
         this.crate = new TextureRegion(crate);
 
-        setBounds(x, y, crate.getWidth(), crate.getHeight());
         setOrigin(crate.getWidth() / 2, crate.getHeight() / 2);
+        setBounds(x, y, 32, 32);
         setTouchable(Touchable.enabled);
     }
 
@@ -26,6 +26,15 @@ public class Crate extends Actor {
         Color color = getColor();
         batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
         batch.draw(crate, getX(), getY(), getOriginX(), getOriginY(),
-                getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
+                16, 16, getScaleX(), getScaleY(), getRotation());
+
+        setRotation(getRotation() + 1);
+    }
+
+    @Override
+    public Actor hit(float x, float y, boolean touchable) {
+        if (touchable && getTouchable() != Touchable.enabled) return null;
+        return x >= -getOriginX() && x < (getWidth() - getOriginX())
+                && y >= -getOriginY() && y < (getHeight() - getOriginY()) ? this : null;
     }
 }
