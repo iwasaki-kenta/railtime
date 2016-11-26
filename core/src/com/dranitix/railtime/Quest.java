@@ -4,8 +4,16 @@ package com.dranitix.railtime;
  * Created by Kenta Iwasaki on 11/27/2016.
  */
 public class Quest {
-    private String _id, content, type;
+    private String _id, question, content, type;
     private String[] images;
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
 
     public String getId() {
         return _id;

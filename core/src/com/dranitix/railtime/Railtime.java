@@ -1,9 +1,6 @@
 package com.dranitix.railtime;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Net;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -20,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -28,7 +26,7 @@ import com.github.czyzby.kiwi.util.gdx.AbstractApplicationListener;
 
 import java.util.Arrays;
 
-public class Railtime extends AbstractApplicationListener {
+public class Railtime extends AbstractApplicationListener implements InputProcessor {
     public static final float UNIT_SCALE = 1 / 16f;
     private float width, height;
 
@@ -38,6 +36,7 @@ public class Railtime extends AbstractApplicationListener {
     SpriteBatch batch;
 
     private TextureRegion[] tiles;
+    Array<Tile> tileActors = new Array<Tile>();
 
     Stage game;
     Stage stage;
@@ -72,6 +71,7 @@ public class Railtime extends AbstractApplicationListener {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(game);
         multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(this);
         Gdx.input.setInputProcessor(multiplexer);
 
         batch = new SpriteBatch();
@@ -106,7 +106,7 @@ public class Railtime extends AbstractApplicationListener {
                 Tile t = new Tile(index, this.tiles[index]);
                 t.setPosition(x * 16, y * 16);
                 t.setSize(16, 16);
-
+                tileActors.add(t);
                 game.addActor(t);
             }
         }
@@ -122,8 +122,43 @@ public class Railtime extends AbstractApplicationListener {
 
     private long lastQuestOpen = 0;
 
+    private void loadQuestion(int id, final Crate crate) {
+        HttpRequestBuilder builder = new HttpRequestBuilder();
+        Gdx.net.sendHttpRequest(builder.newRequest().url("http://163.47.11.80:3000/api/jobs/" + Integer.toString(id)).method("GET").build(), new Net.HttpResponseListener() {
+            @Override
+            public void handleHttpResponse(final Net.HttpResponse httpResponse) {
+                Json json = new Json();
+                final Quest quest = json.fromJson(Quest.class, httpResponse.getResultAsString());
+                if (quest != null) {
+                    System.out.println(quest.getType());
+                    System.out.println(quest.getContent());
+                    System.out.println(Arrays.toString(quest.getImages()));
+
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            questWindow.loadQuest(quest, crate);
+                            questWindow.addAction(Actions.sequence(Actions.show(), Actions.scaleTo(1, 1, 0.2f, Interpolation.bounceIn)));
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void failed(Throwable t) {
+                t.printStackTrace();
+            }
+
+            @Override
+            public void cancelled() {
+
+            }
+        });
+    }
+
     @Override
     protected void render(float deltaTime) {
+
         camera.position.set(MathUtils.clamp(player.getX(), 240, mapWidth * 16), MathUtils.clamp(player.getY(), 400, (mapHeight - 25) * 16), 0);
         camera.update();
 
@@ -140,47 +175,23 @@ public class Railtime extends AbstractApplicationListener {
             batch.end();
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 100) {
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
             if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
-                HttpRequestBuilder builder = new HttpRequestBuilder();
-                Gdx.net.sendHttpRequest(builder.newRequest().url("http://192.168.5.107:3001/api/jobs").method("GET").build(), new Net.HttpResponseListener() {
-                    @Override
-                    public void handleHttpResponse(final Net.HttpResponse httpResponse) {
-                        Json json = new Json();
-                        final Quest quest = json.fromJson(Quest.class, httpResponse.getResultAsString());
+                loadQuestion(0, (Crate) hit);
+            }
+            lastQuestOpen = TimeUtils.millis();
+        }
 
-                        System.out.println(quest.getType());
-                        System.out.println(quest.getContent());
-                        System.out.println(Arrays.toString(quest.getImages()));
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_2) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
+            if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                loadQuestion(6, (Crate) hit);
+            }
+            lastQuestOpen = TimeUtils.millis();
+        }
 
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                Quest quest = new Quest();
-                                quest.setType("spam");
-                                quest.setContent("I am Charles Wood of the US Army base in Afghanistan for peace keeping I found your contact detail in a address journal am seeking your assistance to evacuate the sum of $8,000,000.00 to you as long as I am assured that it will be safe in your care until I complete my service here in Afghanistan. This is not stolen money and there are no dangers involved.\n" +
-                                        " \n" +
-                                        "I count on your understanding. please get back to my personal email: charleswoodwood963@gmail.com");
-                                quest.setImages(new String[] {});
-
-                                questWindow.loadQuest(quest);
-                                questWindow.addAction(Actions.sequence(Actions.show(), Actions.scaleTo(1, 1, 0.2f, Interpolation.bounceIn)));
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void failed(Throwable t) {
-                        t.printStackTrace();
-                    }
-
-                    @Override
-                    public void cancelled() {
-
-                    }
-                });
-            } else if (questWindow.isVisible()){
-                questWindow.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_3) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
+            if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                loadQuestion(5, (Crate) hit);
             }
             lastQuestOpen = TimeUtils.millis();
         }
@@ -216,13 +227,31 @@ public class Railtime extends AbstractApplicationListener {
         batch.begin();
         titleFont.getData().setScale(2, 2);
         titleFont.draw(batch, "Railtime", Gdx.graphics.getWidth() / 2 - 75, Gdx.graphics.getHeight() - 150);
+        titleFont.getData().setScale(0.85f, 0.85f);
+        titleFont.setColor(Color.YELLOW);
+        titleFont.getColor().a = 0.75f;
+        if (Storage.MULTIPLIER != 0f) {
+            titleFont.draw(batch, "Travel before 6:00PM", Gdx.graphics.getWidth() / 2 - getTextWidth("Travel before 6:00PM") / 2, Gdx.graphics.getHeight() - 185);
+            titleFont.draw(batch, "to get a 2X multiplier!", Gdx.graphics.getWidth() / 2 - getTextWidth("to get a 2X multiplier!") / 2, Gdx.graphics.getHeight() - 200);
+        }
+        titleFont.setColor(Color.WHITE);
+        titleFont.getColor().a = 0.75f;
         titleFont.getData().setScale(1, 1);
 
         titleFont.setColor(Color.YELLOW);
+        titleFont.getColor().a = 0.75f;
         titleFont.draw(batch, "You're now at: ", 18, 30);
         titleFont.setColor(Color.WHITE);
-        titleFont.getData().setScale(2, 2);
-        titleFont.draw(batch, "WHAMPOA", getTextWidth("You're now at: ") / 2 + 28, 35);
+        titleFont.getColor().a = 0.75f;
+        titleFont.getData().setScale(1.5f, 1.5f);
+        titleFont.draw(batch, Storage.getStation().toUpperCase(), getTextWidth("You're now at: ") / 2 + 65, 32);
+        titleFont.getData().setScale(1, 1);
+        titleFont.draw(batch, String.valueOf((int) ((Math.round(Storage.MONEY * Math.pow(10, 2)) / Math.pow(10, 2)) * 100)) + "PT", Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 15);
+        titleFont.setColor(Color.RED);
+        titleFont.getColor().a = 0.75f;
+        titleFont.draw(batch, " +" + Integer.toString((int) (Storage.MULTIPLIER * 100)) + "%", Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight() - 15);
+        titleFont.setColor(Color.WHITE);
+        titleFont.getColor().a = 0.75f;
         batch.end();
 
         stage.act(deltaTime);
@@ -247,5 +276,73 @@ public class Railtime extends AbstractApplicationListener {
         game.getViewport().update(width, height, true);
         stage.getViewport().update(width, height, true);
         viewport.setToOrtho(false, width, height);
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        switch (keycode) {
+            case Input.Keys.E: {
+                Storage.incrementStation();
+                break;
+            }
+            case Input.Keys.Q: {
+                Storage.MULTIPLIER = Storage.MULTIPLIER == 0f ? 1 : 0;
+                if (Storage.MULTIPLIER == 1f) {
+                    Table table = new Table();
+                    table.setFillParent(true);
+                    Dialog dialog = new Dialog("Notice", skin);
+                    Label label = new Label("Travel before 6:00PM\nto get a 2x multiplier!", skin);
+                    label.setWrap(true);
+                    label.setAlignment(Align.center);
+                    dialog.text(label);
+                    dialog.button("OK");
+                    table.add(dialog).pad(16).width(stage.getWidth() - 64).height(250).row();
+                    table.setTransform(true);
+                    table.setOrigin(table.getPrefWidth() / 2, table.getPrefHeight() / 2);
+
+                    stage.addActor(table);
+                    table.setScale(0);
+                    table.addAction(Actions.sequence(Actions.scaleTo(1, 1, 0.5f, Interpolation.circleIn), Actions.show()));
+
+                }
+                break;
+            }
+}
+        return false;
+                }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
     }
 }

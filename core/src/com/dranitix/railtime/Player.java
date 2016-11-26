@@ -36,7 +36,7 @@ public class Player extends Actor {
     }
 
     public Player() {
-        setBounds(48, 48, 8, 8);
+        setBounds(48, 48, 16, 16);
         setOrigin(8, 8);
         setTouchable(Touchable.disabled);
 
@@ -74,38 +74,38 @@ public class Player extends Actor {
     public void act(float delta) {
         super.act(delta);
 
-        int speed = 5;
+        int speed = 3;
 
         stateTime += delta;
 
         moving = false;
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             setState(2);
-            if (!collide(getX(), getY() - speed)) {
+//            if (!collide(getX(), getY() - speed)) {
                 moving = true;
                 setPosition(getX(), getY() - speed);
-            }
+//            }
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             setState(0);
-            if (!collide(getX() - speed, getY())) {
+//            if (!collide(getX() - speed, getY())) {
                 moving = true;
                 setPosition(getX() - speed, getY());
-            };
+//            };
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             setState(3);
-            if (!collide(getX(), getY() + speed)) {
+//            if (!collide(getX(), getY() + speed)) {
                 moving = true;
                 setPosition(getX(), getY() + speed);
-            }
+//            }
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
             setState(1);
-            if (!collide(getX() + speed, getY())) {
+//            if (!collide(getX() + speed, getY())) {
                 moving = true;
                 setPosition(getX() + speed, getY());
-            }
+//            }
         }
     }
 }
