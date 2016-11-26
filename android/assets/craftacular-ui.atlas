@@ -144,7 +144,7 @@ scroll-bg
   index: -1
 scroll-horizontal
   rotate: false
-  xy: 1022, 931
+  xy: 1022, 934
   size: 1, 22
   split: 0, 0, 0, 0
   orig: 1, 22
@@ -213,7 +213,7 @@ underline
   index: -1
 white
   rotate: false
-  xy: 1022, 955
+  xy: 1022, 931
   size: 1, 1
   orig: 1, 1
   offset: 0, 0
