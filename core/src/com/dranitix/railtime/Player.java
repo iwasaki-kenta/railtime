@@ -2,15 +2,16 @@ package com.dranitix.railtime;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 import net.dermetfan.gdx.utils.ArrayUtils;
 
 /**
@@ -24,8 +25,11 @@ public class Player extends Actor {
     private Array<TextureRegion> frames;
 
     private float stateTime = 0;
+    private long lastSoundPlay = 0;
     private int state = 2;
     private boolean moving = false, onCrate = false;
+
+    private Music runningSound;
 
     public int getState() {
         return state;
@@ -48,6 +52,8 @@ public class Player extends Actor {
         animations.add(rightAnim = new Animation(0.1f, ArrayUtils.select(frames, new int[]{1, 2}).toArray()));
         animations.add(upAnim = new Animation(0.1f, ArrayUtils.select(frames, new int[]{11, 12, 13}).toArray()));
         animations.add(downAnim = new Animation(0.1f, ArrayUtils.select(frames, new int[]{4, 5, 6}).toArray()));
+
+        runningSound = Gdx.audio.newMusic(Gdx.files.internal("running.wav"));
     }
 
     @Override
@@ -85,6 +91,7 @@ public class Player extends Actor {
                 moving = true;
                 setPosition(getX(), getY() - speed);
 //            }
+            lastSoundPlay = TimeUtils.millis();
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             setState(0);
@@ -92,12 +99,14 @@ public class Player extends Actor {
                 moving = true;
                 setPosition(getX() - speed, getY());
 //            };
+            lastSoundPlay = TimeUtils.millis();
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             setState(3);
 //            if (!collide(getX(), getY() + speed)) {
                 moving = true;
                 setPosition(getX(), getY() + speed);
+            lastSoundPlay = TimeUtils.millis();
 //            }
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
@@ -106,6 +115,15 @@ public class Player extends Actor {
                 moving = true;
                 setPosition(getX() + speed, getY());
 //            }
+            lastSoundPlay = TimeUtils.millis();
+        }
+
+        if (moving && !runningSound.isPlaying()) {
+            runningSound.setLooping(true);
+            runningSound.play();
+        } else if (runningSound.isPlaying() && TimeUtils.timeSinceMillis(lastSoundPlay) > 50){
+            runningSound.pause();
+
         }
     }
 }

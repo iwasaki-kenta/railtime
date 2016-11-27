@@ -1,18 +1,17 @@
 package com.dranitix.railtime;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 
@@ -34,6 +33,7 @@ public class QuestWindow extends Window {
             "Is hard to come by5"};
 
     private Crate crate;
+    private Sound pickupSound, buttonSound;
 
     public QuestWindow(Stage stage, Skin skin) {
         super("Quest", skin);
@@ -48,6 +48,9 @@ public class QuestWindow extends Window {
 
         setVisible(false);
         setScale(0, 0);
+
+        pickupSound = Gdx.audio.newSound(Gdx.files.internal("pickup.wav"));
+        buttonSound = Gdx.audio.newSound(Gdx.files.internal("jump.wav"));
     }
 
     private Pixmap syncDownloadPixmapFromURL(String url) {
@@ -106,6 +109,7 @@ public class QuestWindow extends Window {
                 yes.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
+                        buttonSound.play();
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
@@ -114,6 +118,7 @@ public class QuestWindow extends Window {
                 no.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
+                        buttonSound.play();
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
@@ -146,6 +151,7 @@ public class QuestWindow extends Window {
                 submit.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
+                        buttonSound.play();
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
@@ -182,6 +188,7 @@ public class QuestWindow extends Window {
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
                         Storage.addCash();
+                        buttonSound.play();
                     }
                 });
                 no.addListener(new ChangeListener() {
@@ -190,6 +197,7 @@ public class QuestWindow extends Window {
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
+                        buttonSound.play();
                     }
                 });
 
@@ -229,6 +237,7 @@ public class QuestWindow extends Window {
                 submit.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
+                        buttonSound.play();
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));
@@ -253,5 +262,6 @@ public class QuestWindow extends Window {
             }
         }
 
+        pickupSound.play();
     }
 }

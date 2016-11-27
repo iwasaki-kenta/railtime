@@ -1,6 +1,7 @@
 package com.dranitix.railtime;
 
 import com.badlogic.gdx.*;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -51,6 +52,7 @@ public class Railtime extends AbstractApplicationListener implements InputProces
     GlyphLayout glyphLayout;
 
     private QuestWindow questWindow;
+    private Music backgroundMusic;
 
     private long lastCrateUpdate = 0;
 
@@ -69,9 +71,9 @@ public class Railtime extends AbstractApplicationListener implements InputProces
         skin = new Skin(Gdx.files.internal("craftacular-ui.json"));
 
         InputMultiplexer multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(this);
         multiplexer.addProcessor(game);
         multiplexer.addProcessor(stage);
-        multiplexer.addProcessor(this);
         Gdx.input.setInputProcessor(multiplexer);
 
         batch = new SpriteBatch();
@@ -111,6 +113,10 @@ public class Railtime extends AbstractApplicationListener implements InputProces
             }
         }
 
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("town.mp3"));
+        backgroundMusic.setLooping(true);
+        backgroundMusic.setVolume(0.05f);
+        backgroundMusic.play();
         game.addActor(player = new Player());
         loadUI();
     }
@@ -175,27 +181,6 @@ public class Railtime extends AbstractApplicationListener implements InputProces
             batch.end();
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
-            if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
-                loadQuestion(0, (Crate) hit);
-            }
-            lastQuestOpen = TimeUtils.millis();
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_2) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
-            if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
-                loadQuestion(6, (Crate) hit);
-            }
-            lastQuestOpen = TimeUtils.millis();
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_3) && TimeUtils.timeSinceMillis(lastQuestOpen) >= 500) {
-            if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
-                loadQuestion(5, (Crate) hit);
-            }
-            lastQuestOpen = TimeUtils.millis();
-        }
-
         if (TimeUtils.timeSinceMillis(lastCrateUpdate) >= 15000) {
             for (Crate crate : crates) {
                 crate.addAction(Actions.sequence(Actions.fadeOut(1), Actions.removeActor()));
@@ -232,7 +217,7 @@ public class Railtime extends AbstractApplicationListener implements InputProces
         titleFont.getColor().a = 0.75f;
         if (Storage.MULTIPLIER != 0f) {
             titleFont.draw(batch, "Travel before 6:00PM", Gdx.graphics.getWidth() / 2 - getTextWidth("Travel before 6:00PM") / 2, Gdx.graphics.getHeight() - 185);
-            titleFont.draw(batch, "to get a 2X multiplier!", Gdx.graphics.getWidth() / 2 - getTextWidth("to get a 2X multiplier!") / 2, Gdx.graphics.getHeight() - 200);
+            titleFont.draw(batch, "to get a 2X more points!", Gdx.graphics.getWidth() / 2 - getTextWidth("to get a 2X more points!") / 2, Gdx.graphics.getHeight() - 200);
         }
         titleFont.setColor(Color.WHITE);
         titleFont.getColor().a = 0.75f;
@@ -266,6 +251,7 @@ public class Railtime extends AbstractApplicationListener implements InputProces
     @Override
     public void dispose() {
         tileset.dispose();
+        backgroundMusic.dispose();
         game.dispose();
         stage.dispose();
         batch.dispose();
@@ -280,8 +266,27 @@ public class Railtime extends AbstractApplicationListener implements InputProces
 
     @Override
     public boolean keyDown(int keycode) {
+        Actor hit;
         switch (keycode) {
-            case Input.Keys.E: {
+            case Input.Keys.NUM_1: {
+                if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                    loadQuestion(6, (Crate) hit);
+                }
+                break;
+            }
+            case Input.Keys.NUM_2: {
+                if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                    loadQuestion(0, (Crate) hit);
+                }
+                break;
+            }
+            case Input.Keys.NUM_3: {
+                if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                    loadQuestion(5, (Crate) hit);
+                }
+                break;
+            }
+            case Input.Keys.TAB: {
                 Storage.incrementStation();
                 break;
             }
@@ -291,7 +296,7 @@ public class Railtime extends AbstractApplicationListener implements InputProces
                     Table table = new Table();
                     table.setFillParent(true);
                     Dialog dialog = new Dialog("Notice", skin);
-                    Label label = new Label("Travel before 6:00PM\nto get a 2x multiplier!", skin);
+                    Label label = new Label("Travel before 6:00PM\nto get 2x more points!", skin);
                     label.setWrap(true);
                     label.setAlignment(Align.center);
                     dialog.text(label);
@@ -307,9 +312,9 @@ public class Railtime extends AbstractApplicationListener implements InputProces
                 }
                 break;
             }
-}
+        }
         return false;
-                }
+    }
 
     @Override
     public boolean keyUp(int keycode) {
