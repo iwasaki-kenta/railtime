@@ -151,7 +151,7 @@ public class QuestWindow extends Window {
                 submit.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
-                        buttonSound.play();
+                        buttonSound.play(0.6f);
                         Storage.addCash();
                         self.addAction(Actions.sequence(Actions.scaleTo(0, 0, 0.2f, Interpolation.bounceOut), Actions.hide()));
                         crate.addAction(Actions.sequence(Actions.scaleTo(0, 0, 3f, Interpolation.circleOut), Actions.removeActor()));

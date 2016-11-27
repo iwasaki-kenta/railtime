@@ -286,6 +286,12 @@ public class Railtime extends AbstractApplicationListener implements InputProces
                 }
                 break;
             }
+            case Input.Keys.NUM_4: {
+                if (!questWindow.isVisible() && (hit = game.hit(player.getX(), player.getY(), true)) != null && hit instanceof Crate) {
+                    loadQuestion(4, (Crate) hit);
+                }
+                break;
+            }
             case Input.Keys.TAB: {
                 Storage.incrementStation();
                 break;
